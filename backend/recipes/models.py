@@ -11,9 +11,9 @@ from .validators import (amount_validator, cooking_time_validator,
 
 class Tag(models.Model):
     name = models.CharField('Название', max_length=MAX_TAG_NAME_LENGTH,
-                            unique=True, blank=False)
+                            unique=True)
     slug = models.SlugField('Slug', max_length=MAX_TAG_SLUG_LENGTH,
-                            unique=True, blank=False,
+                            unique=True,
                             validators=(tag_regex_validator,))
 
     class Meta:
@@ -25,11 +25,10 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField('Название', max_length=MAX_INGREDIENT_NAME_LENGTH,
-                            blank=False, unique=True)
+                            unique=True)
     measurement_unit = models.CharField(
         'Ед. измерения',
         max_length=MAX_INGREDIENT_MEASURE_UNIT_LENGTH,
-        blank=False
     )
 
     class Meta:
@@ -52,10 +51,8 @@ class Recipes(models.Model):
         verbose_name='Ингредиенты'
     )
     name = models.CharField('Название',
-                            max_length=MAX_RECIPE_NAME_LENGTH,
-                            blank=False)
-    image = models.ImageField('Картинка', upload_to='recipes/images/',
-                              blank=False)
+                            max_length=MAX_RECIPE_NAME_LENGTH,)
+    image = models.ImageField('Картинка', upload_to='recipes/images/',)
     text = models.TextField('Описание')
     cooking_time = models.PositiveSmallIntegerField(
         'Время готовки',
