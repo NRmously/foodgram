@@ -10,20 +10,14 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'slug')
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit'
-    )
-    amount = serializers.IntegerField()
-
     class Meta:
         model = RecipesIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount',)
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+        read_only_fields = ('id', 'name', 'measurement_unit')
 
 
 class CreateIngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -45,7 +39,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -102,12 +96,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients', [])
         tags = validated_data.pop('tags', [])
-        recipe = Recipes.objects.create(
-            author=self.context.get('request').user,
-            image=validated_data.pop('image'),
-            name=validated_data.pop('name'),
-            text=validated_data.pop('text'),
-            cooking_time=validated_data.pop('cooking_time'), )
+        recipe = super().create(validated_data)
         recipe.tags.set(tags)
         self.recipes_bulk_create(recipe, ingredients)
         return recipe
@@ -175,10 +164,9 @@ class DetailSerializer(serializers.ModelSerializer):
 
 
 class BaseFavoriteAndShopCartSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
     class Meta:
-        fields = ('id', )
+        model = Favorite
+        fields = ('author', 'recipe')
 
     def to_representation(self, instance):
         return DetailSerializer(instance).data
