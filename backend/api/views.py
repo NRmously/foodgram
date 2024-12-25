@@ -29,15 +29,13 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
 
 
 class TagsViewSet(ReadOnlyModelViewSet):
-    model = Tag
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
     pagination_class = None
 
 
 class IngredientsViewSet(ReadOnlyModelViewSet):
-    model = Ingredient
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny, )
@@ -47,12 +45,13 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
 
 
 class RecipViewSet(ModelViewSet):
-    model = Recipes
-    queryset = Recipes.objects.all()
+    queryset = Recipes.objects.select_related('author').prefetch_related(
+        'tags', 'recipeingredients__ingredient'
+    )
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def show_short_link(self, request, pk):
@@ -66,17 +65,18 @@ class RecipViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def post_request_processing(self, request, model, serializer, pk):
+    def post_request_processing(self, request, model, serializer_class, pk):
         recipe = get_object_or_404(Recipes, id=pk)
-        serializer = serializer(recipe)
-        obj, created = model.objects.get_or_create(
-            user=request.user, recipe=recipe)
-        if created:
+        data = {'user': request.user.id, 'recipe': recipe.id}
+        serializer = serializer_class(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(
-                {'Ошибка': f'Рецепт уже в {model._meta.verbose_name}'},
-                status=status.HTTP_400_BAD_REQUEST)
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete_request_processing(self, request, model, serializer, pk):
         recipe = get_object_or_404(Recipes, id=pk)
@@ -145,16 +145,13 @@ class RecipViewSet(ModelViewSet):
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(total_amount=Sum('amount'))
         )
-        if not ingredients:
-            return Response({'Ошибка': 'Корзина пуста'},
-                            status=status.HTTP_400_BAD_REQUEST)
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
         p.setFont('DejaVuSans', FONT_SIZE)
         p.drawString(SHOPPING_CART_X_SIZE, height - SHOPPING_CART_OFFSET_X,
-                     "Список покупок:")
+                     'Список покупок:')
         y_position = height - SHOPPING_CART_OFFSET_Y
         for ingredient in ingredients:
             name = ingredient['ingredient__name']
