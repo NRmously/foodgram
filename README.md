@@ -37,10 +37,8 @@ POSTGRES_DB=django
 DB_HOST=db
 DB_PORT=5432
 SECRET_KEY=django-insecure-cg6*%6d51ef8f#4!r3*$vmxm4)abgAgfasgasf
-ALLOWED_HOSTS=127.0.0.1,localhost,923.223.70.175,pet-kittygram.ddns.net
+ALLOWED_HOSTS=127.0.0.1,localhost,923.223.70.175,pet-foodgram.ddns.net
 DEBUG=True
-# Что бы использовать sqlite - раскомментируйте строку ниже
-# USE_SQLITE=1
 ```
 
 Запустите Docker compose:
