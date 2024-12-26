@@ -152,29 +152,35 @@ class RecipViewSet(ModelViewSet):
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(total_amount=Sum('amount'))
         )
+        buffer = self.create_pdf_buffer(ingredients)
+        response = HttpResponse(buffer.read(), content_type='application/pdf')
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_cart.pdf"'
+        )
+        return response
+
+    def create_pdf_buffer(self, ingredients):
         buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
+        pdf_canvas = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
-        p.setFont('DejaVuSans', FONT_SIZE)
-        p.drawString(SHOPPING_CART_X_SIZE, height - SHOPPING_CART_OFFSET_X,
-                     'Список покупок:')
+        pdf_canvas.setFont('DejaVuSans', FONT_SIZE)
+        pdf_canvas.drawString(SHOPPING_CART_X_SIZE,
+                              height - SHOPPING_CART_OFFSET_X,
+                              'Список покупок:')
         y_position = height - SHOPPING_CART_OFFSET_Y
         for ingredient in ingredients:
             name = ingredient['ingredient__name']
             measurement_unit = ingredient['ingredient__measurement_unit']
             total_amount = ingredient['total_amount']
             key = f'{name} ({measurement_unit})'
-            p.drawString(SHOPPING_CART_X_SIZE, y_position,
-                         f"{key} — {total_amount}")
+            pdf_canvas.drawString(SHOPPING_CART_X_SIZE, y_position,
+                                  f"{key} — {total_amount}")
             y_position -= 20
-        p.showPage()
-        p.save()
+        pdf_canvas.showPage()
+        pdf_canvas.save()
         buffer.seek(0)
-        response = HttpResponse(buffer.read(), content_type='application/pdf')
-        response['Content-Disposition'] = ('attachment; '
-                                           'filename="shopping_cart.pdf"')
-        return response
+        return buffer
 
 
 class UserMeViewSet(UserViewSet):
