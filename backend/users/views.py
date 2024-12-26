@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from api.pagination import DefaultPagination
 
-from .models import Subscribers
+from .models import Subscriber
 from .serializers import (AvatarSerializer, SubscriberListSerializer,
                           SubscribeSerializer)
 
@@ -62,10 +62,10 @@ class SubcribeView(APIView):
     def delete(self, request, pk):
         user = request.user
         unsub_author = get_object_or_404(User, id=pk)
-        if Subscribers.objects.filter(subscriber=user,
-                                      subscribe_to=unsub_author).exists():
-            Subscribers.objects.filter(subscriber=user,
-                                       subscribe_to=unsub_author).delete()
+        if Subscriber.objects.filter(subscriber=user,
+                                     subscribe_to=unsub_author).exists():
+            Subscriber.objects.filter(subscriber=user,
+                                      subscribe_to=unsub_author).delete()
             return Response({'Сообщение': 'Вы успешно отписались от автора!'},
                             status=status.HTTP_204_NO_CONTENT)
         else:

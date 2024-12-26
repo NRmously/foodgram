@@ -25,10 +25,11 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name', 'password')
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Пользователь', 'Пользователи'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
-class Subscribers(models.Model):
+class Subscriber(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -41,7 +42,8 @@ class Subscribers(models.Model):
         verbose_name='Автор')
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Подписка', 'Подписки'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписка'
         constraints = [
             models.UniqueConstraint(fields=['subscriber', 'subscribe_to'],
                                     name='unique_subscribers'),

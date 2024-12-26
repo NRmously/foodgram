@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 
-from users.models import Subscribers, User
+from users.models import Subscriber, User
 
 
 @admin.register(User)
@@ -17,8 +17,8 @@ class CustomUserAdmin(UserAdmin):
     readonly_fields = ('date_joined',)
 
 
-@admin.register(Subscribers)
-class SubscribersAdmin(admin.ModelAdmin):
+@admin.register(Subscriber)
+class SubscriberAdmin(admin.ModelAdmin):
     list_display = ('subscriber', 'subscribe_to', 'created_at')
     search_fields = ('subscriber__email', 'subscribe_to__email')
     list_filter = ('subscribe_to',)

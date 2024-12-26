@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from api.fields import Base64ImageField
 
-from .models import Subscribers, User
+from .models import Subscriber, User
 
 
 class UserListSerializer(ModelSerializer):
@@ -80,7 +80,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Subscribers
+        model = Subscriber
         fields = ('subscribe_to', 'subscriber')
         validators = [
             UniqueTogetherValidator(

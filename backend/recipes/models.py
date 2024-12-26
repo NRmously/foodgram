@@ -17,7 +17,8 @@ class Tag(models.Model):
                             validators=(tag_regex_validator,))
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Тег', 'Теги'
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
     def __str__(self) -> str:
         return (f'{self.name} {self.slug}')
@@ -32,7 +33,8 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Ингредиент', 'Ингредиенты'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
     def __str__(self) -> str:
         return (f'{self.name} {self.measurement_unit}')
@@ -64,7 +66,8 @@ class Recipes(models.Model):
     )
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Рецепт', 'Рецепты'
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
 
     def __str__(self) -> str:
@@ -115,7 +118,8 @@ class Favorite(models.Model):
         verbose_name='Рецепт')
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Избранное', 'Избранное'
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_favorites'),
@@ -138,7 +142,8 @@ class ShoppingCart(models.Model):
         verbose_name='Рецепт')
 
     class Meta:
-        verbose_name, verbose_name_plural = 'Корзина', 'Корзина'
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_shop_cart'),
