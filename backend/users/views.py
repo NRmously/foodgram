@@ -8,10 +8,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.pagination import DefaultPagination
-
-from .models import Subscriber
 from api.serializers import (AvatarSerializer, SubscriberListSerializer,
                              SubscribeSerializer)
+
+from .models import Subscriber
 
 User = get_user_model()
 

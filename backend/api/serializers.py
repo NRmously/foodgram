@@ -1,11 +1,11 @@
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers, status
+from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueTogetherValidator
 
 from api.fields import Base64ImageField
 from recipes.models import (Favorite, Ingredient, Recipes, RecipesIngredient,
                             ShoppingCart, Tag)
-from djoser.serializers import UserCreateSerializer
-from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueTogetherValidator
 from users.models import Subscriber, User
 
 
@@ -240,7 +240,7 @@ class SubscribeRecipesBase(UserListSerializer):
         from api.serializers import RecipForSubscribersSerializer
         recipes = author.recipes.all()
         request = self.context['request']
-        limit = request.GET.get('recipes_limit')
+        limit = int(request.GET.get('recipes_limit', 10))
         if limit:
             recipes = recipes[: int(limit)]
         serializer = RecipForSubscribersSerializer(recipes,
