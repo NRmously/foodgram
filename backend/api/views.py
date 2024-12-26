@@ -86,9 +86,8 @@ class RecipViewSet(ModelViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_request_processing(self, request, model, serializer, pk):
+    def delete_request_processing(self, request, model, pk):
         recipe = get_object_or_404(Recipes, id=pk)
-        serializer = serializer(recipe)
         deleted, _ = model.objects.filter(user=request.user, recipe=recipe
                                           ).delete()
         if deleted > 0:
