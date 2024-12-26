@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 from api.pagination import DefaultPagination
 
 from .models import Subscriber
-from .serializers import (AvatarSerializer, SubscriberListSerializer,
-                          SubscribeSerializer)
+from api.serializers import (AvatarSerializer, SubscriberListSerializer,
+                             SubscribeSerializer)
 
 User = get_user_model()
 
