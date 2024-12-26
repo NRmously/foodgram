@@ -279,6 +279,12 @@ class SubscribeSerializer(serializers.ModelSerializer):
         return UserRecipeSerializer(instance.subscribe_to,
                                     context=self.context).data
 
+    def validate_subscribe_to(self, value):
+        subscriber = self.context['request'].user
+        if subscriber == value:
+            raise serializers.ValidationError("Нельзя подписаться на себя!")
+        return value
+
 
 class SubscriberListSerializer(SubscribeRecipesBase):
     class Meta(UserListSerializer.Meta):

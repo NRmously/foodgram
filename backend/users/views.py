@@ -36,9 +36,7 @@ class AvatarPutDeleteView(APIView):
     def delete(self, request):
         user = request.user
         if user.avatar:
-            user.avatar.delete(save=False)
-            user.avatar = None
-            user.save()
+            user.avatar.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response('Аватар отсутствует',
                         status=status.HTTP_400_BAD_REQUEST)
@@ -48,29 +46,33 @@ class SubcribeView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, pk):
-        user = request.user
         subscribe_to = get_object_or_404(User, id=pk)
-        if user == subscribe_to:
-            return Response({'Ошибка': 'Нельзя подписаться на себя!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer = SubscribeSerializer(data={'subscribe_to': subscribe_to},
-                                         context={'request': request})
+        serializer = SubscribeSerializer(
+            data={'subscribe_to': subscribe_to},
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
-        serializer.save(subscriber=user)
+        serializer.save(subscriber=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = request.user
         unsub_author = get_object_or_404(User, id=pk)
-        if Subscriber.objects.filter(subscriber=user,
-                                     subscribe_to=unsub_author).exists():
-            Subscriber.objects.filter(subscriber=user,
-                                      subscribe_to=unsub_author).delete()
-            return Response({'Сообщение': 'Вы успешно отписались от автора!'},
-                            status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({'Ошибка': 'Вы не были подписаны на автора!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+
+        deleted_count, _ = Subscriber.objects.filter(
+            subscriber=user, subscribe_to=unsub_author
+        ).delete()
+
+        if deleted_count == 0:
+            return Response(
+                {'Ошибка': 'Вы не были подписаны на автора!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {'Сообщение': 'Вы успешно отписались от автора!'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class SubscribeListView(APIView):
@@ -81,9 +83,10 @@ class SubscribeListView(APIView):
         paginator = self.pagination_class()
         user = request.user
         subscriptions = user.subscriber.all()
-        pag_subs = paginator.paginate_queryset(subscriptions, request)
-        subscribed_users = [subscription.subscribe_to
-                            for subscription in pag_subs]
-        serializer = SubscriberListSerializer(subscribed_users, many=True,
+        subscribed_users = subscriptions.values('subscribe_to')
+        paginated_subscriptions = paginator.paginate_queryset(subscribed_users,
+                                                              request)
+        serializer = SubscriberListSerializer(paginated_subscriptions,
+                                              many=True,
                                               context={'request': request})
         return paginator.get_paginated_response(serializer.data)
