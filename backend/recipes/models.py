@@ -40,21 +40,21 @@ class Ingredient(models.Model):
         return (f'{self.name} {self.measurement_unit}')
 
 
-class Recipes(models.Model):
-    tags = models.ManyToManyField(Tag, related_name='recipes',
+class Recipe(models.Model):
+    tags = models.ManyToManyField(Tag, related_name='recipe',
                                   verbose_name='Тег')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='recipes',
+                               related_name='recipe',
                                verbose_name='Автор',)
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='RecipesIngredient',
-        related_name='recipes',
+        through='RecipeIngredient',
+        related_name='recipe',
         verbose_name='Ингредиенты'
     )
     name = models.CharField('Название',
                             max_length=MAX_RECIPE_NAME_LENGTH,)
-    image = models.ImageField('Картинка', upload_to='recipes/images/',)
+    image = models.ImageField('Картинка', upload_to='recipe/images/',)
     text = models.TextField('Описание')
     cooking_time = models.PositiveSmallIntegerField(
         'Время готовки',
@@ -74,9 +74,9 @@ class Recipes(models.Model):
         return self.name
 
 
-class RecipesIngredient(models.Model):
+class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         related_name='recipeingredients',
         verbose_name='Рецепт')
@@ -95,7 +95,7 @@ class RecipesIngredient(models.Model):
         verbose_name_plural = 'Ингредиенты в рецептах'
         constraints = [
             models.UniqueConstraint(fields=['recipe', 'ingredient'],
-                                    name='unique_recipes'),
+                                    name='unique_recipe'),
         ]
 
     def __str__(self):
@@ -112,7 +112,7 @@ class Favorite(models.Model):
         related_name='favorite',
         verbose_name='Пользователь')
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         related_name='favorite',
         verbose_name='Рецепт')
@@ -136,7 +136,7 @@ class ShoppingCart(models.Model):
         related_name='shopcart',
         verbose_name='Пользователь')
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         related_name='shopcart',
         verbose_name='Рецепт')

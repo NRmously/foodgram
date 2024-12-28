@@ -12,3 +12,4 @@ psycopg2-binary==2.9.3
 python-decouple
 flake8
 flake8-isort
+flake8-django

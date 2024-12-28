@@ -29,7 +29,7 @@ from api.serializers import (AvatarSerializer, FavoriteSerializer,
                              RecipeSerializer, ShopCartSerializer,
                              SubscriberListSerializer, SubscribeSerializer,
                              TagSerializer)
-from recipes.models import (Favorite, Ingredient, Recipes, RecipesIngredient,
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Subscriber
 
@@ -53,7 +53,7 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
 
 
 class RecipViewSet(ModelViewSet):
-    queryset = Recipes.objects.select_related('author').prefetch_related(
+    queryset = Recipe.objects.select_related('author').prefetch_related(
         'tags', 'recipeingredients__ingredient'
     )
     serializer_class = RecipeSerializer
@@ -74,7 +74,7 @@ class RecipViewSet(ModelViewSet):
         serializer.save(author=self.request.user)
 
     def post_request_processing(self, request, model, serializer_class, pk):
-        recipe = get_object_or_404(Recipes, id=pk)
+        recipe = get_object_or_404(Recipe, id=pk)
         data = {'user': request.user.id, 'recipe': recipe.id}
         serializer = serializer_class(data=data, context={'request': request})
         if not serializer.is_valid():
@@ -87,17 +87,20 @@ class RecipViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_request_processing(self, request, model, pk):
-        recipe = get_object_or_404(Recipes, id=pk)
-        deleted, _ = model.objects.filter(user=request.user, recipe=recipe
-                                          ).delete()
+        recipe = get_object_or_404(Recipe, id=pk)
+        deleted, _ = model.objects.filter(user=request.user,
+                                          recipe=recipe).delete()
+
         if deleted > 0:
             return Response(
                 {'Сообщение': f'Рецепт удален из {model._meta.verbose_name}!'},
-                status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                {'Ошибка': f'Рецепт не найден в {model._meta.verbose_name}'},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+        return Response(
+            {'Ошибка': f'Рецепт не найден в {model._meta.verbose_name}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         detail=True,
@@ -106,7 +109,7 @@ class RecipViewSet(ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk):
-        recipe = get_object_or_404(Recipes, id=pk)
+        recipe = get_object_or_404(Recipe, id=pk)
         shortlink = request.build_absolute_uri(f'/s/{recipe.id}')
         return Response({'short-link': shortlink}, status=status.HTTP_200_OK)
 
@@ -147,7 +150,7 @@ class RecipViewSet(ModelViewSet):
     )
     def download_shopping_cart(self, request):
         ingredients = (
-            RecipesIngredient.objects
+            RecipeIngredient.objects
             .filter(recipe__shopcart__user=request.user)
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(total_amount=Sum('amount'))

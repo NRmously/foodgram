@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 
 from api.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, Recipes, RecipesIngredient,
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Subscriber, User
 
@@ -34,7 +34,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RecipesIngredient
+        model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
         read_only_fields = ('id', 'name', 'measurement_unit')
 
@@ -49,7 +49,7 @@ class CreateIngredientInRecipeSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = RecipesIngredient
+        model = RecipeIngredient
         fields = ('id', 'amount',)
 
 
@@ -73,7 +73,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'is_in_shopping_cart', 'name', 'image', 'text',
                   'cooking_time')
@@ -100,13 +100,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True, source='recipe_ingredients', required=True)
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
                   'name', 'image', 'text',
                   'cooking_time')
 
-    def recipes_bulk_create(self, recipe, ingredients):
-        RecipesIngredient.objects.bulk_create(RecipesIngredient(
+    def create_recipe_ingredients(self, recipe, ingredients):
+        RecipeIngredient.objects.bulk_create(RecipeIngredient(
             recipe=recipe,
             ingredient=ingredient.get('ingredient'),
             amount=ingredient.get('amount'),)
@@ -117,7 +117,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags', [])
         recipe = super().create(validated_data)
         recipe.tags.set(tags)
-        self.recipes_bulk_create(recipe, ingredients)
+        self.create_recipe_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -126,7 +126,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('recipe_ingredients', [])
         tags = validated_data.pop('tags', [])
         instance.tags.set(tags)
-        self.recipes_bulk_create(instance, ingredients)
+        self.create_recipe_ingredients(instance, ingredients)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
@@ -172,13 +172,10 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class DetailSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField()
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
@@ -205,7 +202,7 @@ class RecipForSubscribersSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
 

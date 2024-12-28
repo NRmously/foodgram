@@ -1,6 +1,6 @@
 from django_filters.rest_framework import CharFilter, FilterSet, filters
 
-from recipes.models import Ingredient, Recipes
+from recipes.models import Ingredient, Recipe
 
 
 class IngredientsNameFilter(FilterSet):
@@ -8,7 +8,7 @@ class IngredientsNameFilter(FilterSet):
 
     class Meta:
         model = Ingredient
-        fields = ('name', )
+        fields = ('name')
 
 
 class RecipeFilter(FilterSet):
@@ -24,8 +24,8 @@ class RecipeFilter(FilterSet):
     )
 
     class Meta:
-        model = Recipes
-        fields = ('tags', 'author',)
+        model = Recipe
+        fields = ('tags', 'author')
 
     def is_favorited_filter(self, queryset, name, value):
         user = self.request.user
